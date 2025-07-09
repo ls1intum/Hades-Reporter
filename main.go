@@ -29,9 +29,7 @@ var metadata ResultMetadata
 func main() {
 	log.Info("Starting the application...")
 
-	//loadEnv()
-	config.Endpoint = "https://hades-benchmarker.wei-tech.site/v1/start_time"
-	metadata.UUID = "123e4567-e89b-12d3-a456-426614174000"
+	loadEnv()
 
 	timestamp := time.Now().Format(time.RFC3339)
 	log.Infof("Timestamp: %s", timestamp)
