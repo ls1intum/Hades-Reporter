@@ -1,9 +1,0 @@
-version: '3.8'
-
-services:
-  timestamp-sender:
-    build: .
-    container_name: timestamp-sender
-    environment:
-      - ENDPOINT=https://your-api.com/api/timestamp
-    restart: unless-stopped
