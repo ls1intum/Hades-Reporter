@@ -2,9 +2,9 @@ version: '3.8'
 
 services:
   result-reporter:
-    image: ghcr.io/shuaiweiyu/hades-reporter:latest
+    build: .
+    image: ghcr.io/ls1intum/hades-reporter/hades-reporter:latest
     container_name: hades-reporter
     environment:
-      - UUID=123e4567-e89b-12d3-a456-426614174000
       - ENDPOINT=https://hades-benchmarker.wei-tech.site/v1/start_time
     restart: "no"

@@ -1,198 +1,33 @@
-`docker build . -t ghcr.io/shuaiweiyu/hades-reporter:latest`
+# Hades Build Start Time Reporter
 
-`docker push ghcr.io/shuaiweiyu/hades-reporter:latest`
+A lightweight Go program that reports the start time of a build job to a specified HTTP endpoint.
 
-```
-{
-  "name": "Example Job",
-  "metadata": {
-    "GLOBAL": "test"
-  },
-  "timestamp": "2021-01-01T00:00:00.000Z",
-  "priority": 3, // optional, default 3
-  "steps": [
-    {
-      "id": 1, // mandatory to declare the order of execution
-      "name": "Clone",
-      "image": "ghcr.io/ls1intum/hades/hades-clone-container:latest", // mandatory
-      "metadata": {
-        "REPOSITORY_DIR": "/shared",
-        "HADES_TEST_USERNAME": "{{user}}",
-        "HADES_TEST_PASSWORD": "{{password}}",
-        "HADES_TEST_URL": "{{test_repo}}",
-        "HADES_TEST_PATH": "./example",
-        "HADES_TEST_ORDER": "1",
-        "HADES_ASSIGNMENT_USERNAME": "{{user}}",
-        "HADES_ASSIGNMENT_PASSWORD": "{{password}}",
-        "HADES_ASSIGNMENT_URL": "{{assignment_repo}}",
-        "HADES_ASSIGNMENT_PATH": "./example/assignment",
-        "HADES_ASSIGNMENT_ORDER": "2"
-      }
-    },
-    {
-      "id": 2, // mandatory to declare the order of execution
-      "name": "Execute",
-      "image": "ls1tum/artemis-maven-template:java17-18", // mandatory
-      "script": "set +e && cd ./shared/example || exit 0 && ./gradlew --status || exit 0 && ./gradlew clean test || exit 0"
-    },
-    {
-      "id": 3,
-      "name": "Result",
-      "image": "ghcr.io/shuaiweiyu/hades-result-parser:latest",
-      "metadata": {
-        "API_ENDPOINT": "https://hades-benchmarker.wei-tech.site/v1/result",
-        "INGEST_DIR":"./shared/example",
-        "HADES_TEST_PATH": "./example",
-        "HADES_ASSIGNMENT_PATH": "./example/assignment"
-      }
-    }
-  ]
-}
-```
+## Overview
 
-```
-{
-  "name": "Example Job",
-  "metadata": {
-    "GLOBAL": "test"
-  },
-  "timestamp": "2021-01-01T00:00:00.000Z",
-  "priority": 3, // optional, default 3
-  "steps": [
-    {
-      "id": 1, // mandatory to declare the order of execution
-      "name": "Clone",
-      "image": "ghcr.io/ls1intum/hades/hades-clone-container:latest", // mandatory
-      "metadata": {
-        "REPOSITORY_DIR": "/shared",
-        "HADES_TEST_USERNAME": "{{user}}",
-        "HADES_TEST_PASSWORD": "{{password}}",
-        "HADES_TEST_URL": "{{test_repo}}",
-        "HADES_TEST_PATH": "./example",
-        "HADES_TEST_ORDER": "1",
-        "HADES_ASSIGNMENT_USERNAME": "{{user}}",
-        "HADES_ASSIGNMENT_PASSWORD": "{{password}}",
-        "HADES_ASSIGNMENT_URL": "{{assignment_repo}}",
-        "HADES_ASSIGNMENT_PATH": "./example/assignment",
-        "HADES_ASSIGNMENT_ORDER": "2"
-      }
-    },
-    {
-      "id": 2,
-      "name": "Report Starting Time",
-      "image": "ghcr.io/shuaiweiyu/hades-reporter:latest",
-      "metadata": {
-        "ENDPOINT": "https://hades-benchmarker.wei-tech.site/v1/start_time"
-      }
-    },
-    {
-      "id": 3, // mandatory to declare the order of execution
-      "name": "Execute",
-      "image": "ls1tum/artemis-maven-template:java17-18", // mandatory
-      "script": "set +e && cd ./shared/example || exit 0 && ./gradlew --status || exit 0 && ./gradlew clean test || exit 0"
-    },
-    {
-      "id": 4,
-      "name": "Result",
-      "image": "ghcr.io/shuaiweiyu/hades-result-parser:latest",
-      "metadata": {
-        "API_ENDPOINT": "https://hades-benchmarker.wei-tech.site/v1/result",
-        "INGEST_DIR":"./shared/example",
-        "HADES_TEST_PATH": "./example",
-        "HADES_ASSIGNMENT_PATH": "./example/assignment"
-      }
-    }
-  ]
-}
-```
+This tool reads job metadata from environment variables and captures the current timestamp at runtime. It then sends a JSON payload via HTTP `POST` to an external API.
 
-```
-{
-  "name": "Example Job",
-  "metadata": {
-    "GLOBAL": "test"
-  },
-  "timestamp": "2021-01-01T00:00:00.000Z",
-  "priority": 3, // optional, default 3
-  "steps": [
-    {
-      "id": 1, // mandatory to declare the order of execution
-      "name": "Clone",
-      "image": "ghcr.io/ls1intum/hades/hades-clone-container:latest", // mandatory
-      "metadata": {
-        "REPOSITORY_DIR": "/shared",
-        "HADES_TEST_USERNAME": "{{user}}",
-        "HADES_TEST_PASSWORD": "{{password}}",
-        "HADES_TEST_URL": "{{test_repo}}",
-        "HADES_TEST_PATH": "./example",
-        "HADES_TEST_ORDER": "1",
-        "HADES_ASSIGNMENT_USERNAME": "{{user}}",
-        "HADES_ASSIGNMENT_PASSWORD": "{{password}}",
-        "HADES_ASSIGNMENT_URL": "{{assignment_repo}}",
-        "HADES_ASSIGNMENT_PATH": "./example/assignment",
-        "HADES_ASSIGNMENT_ORDER": "2"
-      }
-    },
-    {
-      "id": 2,
-      "name": "Report Starting Time",
-      "image": "ghcr.io/shuaiweiyu/hades-reporter:latest",
-      "metadata": {
-        "ENDPOINT": "https://hades-benchmarker.wei-tech.site/v1/start_time"
-      }
-    },
-    {
-      "id": 3, // mandatory to declare the order of execution
-      "name": "Execute",
-      "image": "ls1tum/artemis-maven-template:java17-18", // mandatory
-      "script": "set +e && cd ./shared/example || exit 0 && ./gradlew --status || exit 0 && ./gradlew clean test || exit 0"
-    }
-  ]
-}
-```
+Use cases include:
 
+- Performance benchmarking systems (e.g., Hades Benchmarking)
 
-```
-{
-  "name": "Example Job",
-  "metadata": {
-    "GLOBAL": "test"
-  },
-  "timestamp": "2021-01-01T00:00:00.000Z",
-  "priority": 3, // optional, default 3
-  "steps": [
-    {
-      "id": 1, // mandatory to declare the order of execution
-      "name": "Clone",
-      "image": "ghcr.io/ls1intum/hades/hades-clone-container:latest", // mandatory
-      "metadata": {
-        "REPOSITORY_DIR": "/shared",
-        "HADES_TEST_USERNAME": "{{user}}",
-        "HADES_TEST_PASSWORD": "{{password}}",
-        "HADES_TEST_URL": "{{test_repo}}",
-        "HADES_TEST_PATH": "./example",
-        "HADES_TEST_ORDER": "1",
-        "HADES_ASSIGNMENT_USERNAME": "{{user}}",
-        "HADES_ASSIGNMENT_PASSWORD": "{{password}}",
-        "HADES_ASSIGNMENT_URL": "{{assignment_repo}}",
-        "HADES_ASSIGNMENT_PATH": "./example/assignment",
-        "HADES_ASSIGNMENT_ORDER": "2"
-      }
-    },
-    {
-      "id": 2, // mandatory to declare the order of execution
-      "name": "Execute",
-      "image": "ls1tum/artemis-maven-template:java17-18", // mandatory
-      "script": "set +e && cd ./shared/example || exit 0 && ./gradlew --status || exit 0 && ./gradlew clean test || exit 0"
-    },
-    {
-      "id": 3,
-      "name": "Report Starting Time",
-      "image": "ghcr.io/shuaiweiyu/hades-reporter:latest",
-      "metadata": {
-        "ENDPOINT": "https://hades-benchmarker.wei-tech.site/v1/start_time"
-      }
-    }
-  ]
-}
-```
+---
+
+### Required Configuration
+
+| Variable     | Required | Description                  |
+|--------------|----------|------------------------------|
+| `ENDPOINT`   | ✅       | The target API endpoint URL  |
+
+### 📝 Job Metadata for Artemis (`ResultMetadata`)
+
+| Variable                        | Type   | Default | Description                         |
+|----------------------------------|--------|---------|-------------------------------------|
+| `JOB_NAME`                      | string | —       | The name of the job                |
+| `UUID`                          | string | —       | UUID of the job                    |
+| `ASSIGNMENT_REPO_BRANCH_NAME`  | string | `main`  | Branch name of the assignment repo |
+| `IS_BUILD_SUCCESSFUL`          | bool   | —       | Whether the build was successful   |
+| `ASSIGNMENT_REPO_COMMIT_HASH`  | string | —       | Commit hash of the assignment repo |
+| `TESTS_REPO_COMMIT_HASH`       | string | —       | Commit hash of the tests repo      |
+| `BUILD_COMPLETION_TIME`        | string | —       | Completion time in RFC3339 format  |
+
+---
