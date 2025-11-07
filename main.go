@@ -3,10 +3,11 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/caarlos0/env/v9"
-	log "github.com/sirupsen/logrus"
 	"net/http"
 	"time"
+
+	"github.com/caarlos0/env/v9"
+	log "github.com/sirupsen/logrus"
 )
 
 type ResultMetadata struct {
@@ -82,27 +83,15 @@ func dumpEnvConfig() {
 func sendResponse(json []byte) {
 	// Create a new request using http
 	log.Info("Sending the response to the API...")
-	req, err := http.NewRequest("POST", config.Endpoint, bytes.NewBuffer(json))
-	if err != nil {
-		log.Debug("Error creating the request")
-		log.Fatal(err)
-	}
-
-	// Set headers
-	req.Header.Set("Content-Type", "application/json")
-
-	// Create a Client
-	client := &http.Client{}
 
 	// Send the request via a client
-	resp, err := client.Do(req)
+	resp, err := http.Post(config.Endpoint, "application/json", bytes.NewBuffer(json))
 	if err != nil {
 		log.Debug("Error sending the request")
 		log.Fatal(err)
 	}
-
-	log.Info("Response Status: ", resp.Status)
-
 	// Close response body
 	defer resp.Body.Close()
+
+	log.Info("Response Status: ", resp.Status)
 }
