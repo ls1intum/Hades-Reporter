@@ -3,7 +3,9 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/caarlos0/env/v9"
@@ -32,6 +34,10 @@ func main() {
 
 	loadEnv()
 
+	if metadata.UUID == "" {
+		metadata.UUID = os.Getenv("UUID")
+	}
+
 	timestamp := time.Now().Format(time.RFC3339)
 	log.Infof("Timestamp: %s", timestamp)
 
@@ -44,6 +50,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to marshal JSON: %v", err)
 	}
+
+	fmt.Println("DEBUG START TIME PAYLOAD:", string(jsonData))
 
 	sendResponse(jsonData)
 }
